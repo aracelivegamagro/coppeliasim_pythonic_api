@@ -62,11 +62,12 @@ class Room:
 
         self.room_qrect = QRectF(random_point.x(), random_point.y(), self.width, self.height)
 
-    def update_room(self):
+    def update_room_dimensions(self):
         self.width = self.room_qrect.width()
         self.height = self.room_qrect.height()
 
     def get_room_polygon_with_door(self, door_location):
+        
         if door_location == 'center':
             line = QLineF(self.room_qrect.topLeft(), self.room_qrect.topRight())
 
@@ -270,7 +271,7 @@ class Apartment:
                 if dict_side_width['top'] > dict_side_width['bottom']:
 
                     room_bottom.room_qrect.setTopRight(QPointF(upper_right.x(), bottom_right.y()))
-                    room_bottom.update_room()
+                    room_bottom.update_room_dimensions()
 
                     self.dict_rooms_per_side['bottom'][-1] = room_bottom
 
@@ -280,7 +281,7 @@ class Apartment:
 
                 else:
                     room_upper.room_qrect.setTopRight(QPointF(bottom_right.x(), upper_right.y()))
-                    room_upper.update_room()
+                    room_upper.update_room_dimensions()
 
                     self.dict_rooms_per_side['top'][-1] = room_upper
 
@@ -296,7 +297,7 @@ class Apartment:
 
                     room_bottom.room_qrect.setTopRight(
                         QPointF(upper_right.x() - self.initial_corridor_height, bottom_right.y()))
-                    room_bottom.update_room()
+                    room_bottom.update_room_dimensions()
 
                     self.dict_rooms_per_side['bottom'][-1] = room_bottom
 
@@ -308,7 +309,7 @@ class Apartment:
 
                     room_upper.room_qrect.setTopRight(
                         QPointF(bottom_right.x() - self.initial_corridor_height, upper_right.y()))
-                    room_upper.update_room()
+                    room_upper.update_room_dimensions()
 
                     self.dict_rooms_per_side['top'][-1] = room_upper
 
@@ -328,7 +329,7 @@ class Apartment:
                 room.room_qrect.setTopLeft(QPointF(room.topLeft().x(),
                                                    room.topLeft().y() + random.choice(random_sign) * random.choice(
                                                        random_mov)))
-                room.update_room()
+                room.update_room_dimensions()
 
     def add_doors(self):
 

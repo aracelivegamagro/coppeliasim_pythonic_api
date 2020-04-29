@@ -11,10 +11,17 @@ from coppeliasimapi import CoppeliaSimAPI
 
 
 class Room:
+<<<<<<< HEAD
     def __init__(self, type = 'genericRoom', w = -1, h = -1):
         self.type = type  # En un futuro será corridor, bedroom, kitchen, bathroom, etc
         self.width = w
         self.height = h
+=======
+    def __init__(self):
+        self.type = 'genericRoom'  # En un futuro será corridor, bedroom, kitchen, bathroom, etc
+        self.width = -1
+        self.height = -1
+>>>>>>> master
         self.corridor_position = None
         self.room_qrect = QRectF()
         self.room_qpolygon = QPolygonF()
@@ -62,12 +69,19 @@ class Room:
 
         self.room_qrect = QRectF(random_point.x(), random_point.y(), self.width, self.height)
 
+<<<<<<< HEAD
     def update_room_dimensions(self):
+=======
+    def update_room(self):
+>>>>>>> master
         self.width = self.room_qrect.width()
         self.height = self.room_qrect.height()
 
     def get_room_polygon_with_door(self, door_location):
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
         if door_location == 'center':
             line = QLineF(self.room_qrect.topLeft(), self.room_qrect.topRight())
 
@@ -136,6 +150,7 @@ class Apartment:
 
         self.initial_corridor_width = -1
         self.initial_corridor_height = -1
+<<<<<<< HEAD
 
         self.initial_corridor = QRectF()
 
@@ -145,6 +160,16 @@ class Apartment:
 
         self.fixed_height = random.uniform(4, 6)
 
+=======
+        self.initial_corridor = QRectF()
+        self.corridor_sides = {}
+
+        # self.result_polygon_rooms_list = []
+
+        self.fixed_height = random.uniform(4, 6)
+
+        # -1 sin pasillo, 0 antes de la primera habitacion, 1 antes de la segunda
+>>>>>>> master
         self.dict_corridors_per_side = {'bottom': [], 'right': [], 'top': [], 'left': []}
         self.dict_rooms_per_side = {'bottom': [], 'right': [], 'top': [], 'left': []}
         self.dict_opposite_side = {'bottom': 'top', 'right': 'left', 'top': 'bottom', 'left': 'right'}
@@ -159,10 +184,15 @@ class Apartment:
             self.change_room_heights()
 
         self.add_doors()
+<<<<<<< HEAD
         self.center_apartment()
         self.add_walls()
         self.add_floor_per_room()
         self.add_corridors_floor()
+=======
+        self.add_floor()
+        self.add_walls()
+>>>>>>> master
 
     def create_initial_corridor(self):
         self.initial_corridor_height = random.uniform(1.5, 3)
@@ -171,9 +201,15 @@ class Apartment:
             F'Creating corridor with width = {self.initial_corridor_width} and height = {self.initial_corridor_height}')
 
         self.initial_corridor = QRectF(0, 0, self.initial_corridor_width, self.initial_corridor_height)
+<<<<<<< HEAD
         self.initial_corridor.translate(-self.initial_corridor.center())
 
         self.initial_corridor_sides = {  # bottom y top deben estar cambiados
+=======
+        self.initial_corridor.translate(-self.initial_corridor.center())  # Traslado el pasillo al centro
+
+        self.corridor_sides = {  # bottom y top deben estar cambiados
+>>>>>>> master
             'bottom': [self.initial_corridor.topLeft(), self.initial_corridor.topRight()],
             'right': [self.initial_corridor.topRight(), self.initial_corridor.bottomRight()],
             'top': [self.initial_corridor.bottomLeft(), self.initial_corridor.bottomRight()],
@@ -181,7 +217,11 @@ class Apartment:
         }
 
     def select_side_corridors(self):
+<<<<<<< HEAD
         # -1 sin pasillo, 0 antes de la primera habitacion, 1 antes de la segunda
+=======
+
+>>>>>>> master
         corridor_position = np.arange(-1, self.max_rooms_per_side)
         print(corridor_position)
 
@@ -192,12 +232,34 @@ class Apartment:
         self.dict_corridors_per_side['top'] = random.sample(list(corridor_position), k=possibles_corridors_per_side)
         self.dict_corridors_per_side['bottom'] = random.sample(list(corridor_position), k=possibles_corridors_per_side)
 
+<<<<<<< HEAD
         while -1 in self.dict_corridors_per_side['top']:
             self.dict_corridors_per_side['top'].remove(-1)
 
         while -1 in self.dict_corridors_per_side['bottom']:
             self.dict_corridors_per_side['bottom'].remove(-1)
 
+=======
+        if -1 in self.dict_corridors_per_side['top']:
+            self.dict_corridors_per_side['top'].remove(-1)
+
+        if -1 in self.dict_corridors_per_side['bottom']:
+            self.dict_corridors_per_side['bottom'].remove(-1)
+
+        # Si los dos lados tienen ambos pasillos a la derecha o a la izquierda el boundingbox lo va a eliminar -Se intenta evitar
+        # REVISAR -- si añado los pasillos como poligonos esto no seria necesario
+
+        if 0 in self.dict_corridors_per_side['top'] and 0 in self.dict_corridors_per_side['bottom']:
+            delete_corridor_from = random.choice(['top', 'bottom'])
+            self.dict_corridors_per_side[delete_corridor_from].remove(0)
+
+        if (self.max_rooms_per_side - 1) in self.dict_corridors_per_side['top'] and (self.max_rooms_per_side - 1) in \
+                self.dict_corridors_per_side[
+                    'bottom']:
+            delete_corridor_from = random.choice(['top', 'bottom'])
+            self.dict_corridors_per_side[delete_corridor_from].remove(self.max_rooms_per_side - 1)
+
+>>>>>>> master
         # --------------------------------------------------------------------------------------------
         print('posicion pasillo parte superior', self.dict_corridors_per_side['top'])
         print('posicion pasillo parte inferior', self.dict_corridors_per_side['bottom'])
@@ -218,14 +280,18 @@ class Apartment:
             else:
                 add_corridor = False
 
+<<<<<<< HEAD
             if add_corridor:
                 self.add_corridor(random_side)
 
+=======
+>>>>>>> master
             room = Room()
             room.get_random_room(random_side, add_corridor, self.dict_rooms_per_side, self.initial_corridor,
                                  self.fixed_height)
 
             self.rooms_list.append(room)
+<<<<<<< HEAD
             self.dict_rooms_per_side[random_side].append(room)
 
 
@@ -254,6 +320,15 @@ class Apartment:
                 corridor = QRectF(initial_point.x(), initial_point.y(), self.initial_corridor_height, self.fixed_height)
 
         self.corridors_qpolygon.append(QPolygonF(corridor))
+=======
+
+            # obtained_room = room.room_qrect
+            # self.random_qrect_room_list.append(obtained_room)  # Revisar si hace falta esta variable
+
+            self.dict_rooms_per_side[random_side].append(room)
+
+        print(f'{len(self.rooms_list)} rooms have been created')
+>>>>>>> master
 
     def adjust_rooms(self):
         if len(self.rooms_list) > 1:
@@ -279,13 +354,21 @@ class Apartment:
 
             # Si la diferencia es muy pequeña ajusto el ancho, si es demasiado grande añado un pasillo
             # Si ensanchamos la habitacion eliminamos el siguiente pasillo si lo hubiese
+<<<<<<< HEAD
             if diff < self.initial_corridor_height:
+=======
+            if diff < self.initial_corridor_height - 1.:
+>>>>>>> master
                 print('Modifying corridor --- widening room')
 
                 if dict_side_width['top'] > dict_side_width['bottom']:
 
                     room_bottom.room_qrect.setTopRight(QPointF(upper_right.x(), bottom_right.y()))
+<<<<<<< HEAD
                     room_bottom.update_room_dimensions()
+=======
+                    room_bottom.update_room()
+>>>>>>> master
 
                     self.dict_rooms_per_side['bottom'][-1] = room_bottom
 
@@ -295,7 +378,11 @@ class Apartment:
 
                 else:
                     room_upper.room_qrect.setTopRight(QPointF(bottom_right.x(), upper_right.y()))
+<<<<<<< HEAD
                     room_upper.update_room_dimensions()
+=======
+                    room_upper.update_room()
+>>>>>>> master
 
                     self.dict_rooms_per_side['top'][-1] = room_upper
 
@@ -304,30 +391,48 @@ class Apartment:
                         self.dict_corridors_per_side['top'].remove(corridor_to_remove)
 
             # Si añadimos un pasillo a la derecha lo añadimos a la lista de pasillos si no estuviese
+<<<<<<< HEAD
             else:
+=======
+            elif diff > self.initial_corridor_height:
+>>>>>>> master
                 print('Modifying corridor --- creating corridor ')
 
                 if dict_side_width['top'] > dict_side_width['bottom']:
 
                     room_bottom.room_qrect.setTopRight(
                         QPointF(upper_right.x() - self.initial_corridor_height, bottom_right.y()))
+<<<<<<< HEAD
                     room_bottom.update_room_dimensions()
+=======
+                    room_bottom.update_room()
+>>>>>>> master
 
                     self.dict_rooms_per_side['bottom'][-1] = room_bottom
 
                     new_corridor_location = len(self.dict_rooms_per_side['bottom'])
+<<<<<<< HEAD
                     self.dict_corridors_per_side['bottom'].append(new_corridor_location)
                     self.add_corridor('bottom')
+=======
+                    if new_corridor_location not in self.dict_corridors_per_side['bottom']:
+                        self.dict_corridors_per_side['bottom'].append(new_corridor_location)
+>>>>>>> master
 
                 else:
 
                     room_upper.room_qrect.setTopRight(
                         QPointF(bottom_right.x() - self.initial_corridor_height, upper_right.y()))
+<<<<<<< HEAD
                     room_upper.update_room_dimensions()
+=======
+                    room_upper.update_room()
+>>>>>>> master
 
                     self.dict_rooms_per_side['top'][-1] = room_upper
 
                     new_corridor_location = len(self.dict_rooms_per_side['top'])
+<<<<<<< HEAD
                     self.dict_corridors_per_side['top'].append(new_corridor_location)
                     self.add_corridor('top')
 
@@ -335,12 +440,24 @@ class Apartment:
 
         for side, rooms in self.dict_rooms_per_side.items():
             for i, room in enumerate(rooms):
+=======
+                    if new_corridor_location not in self.dict_corridors_per_side['top']:
+                        self.dict_corridors_per_side['top'].append(new_corridor_location)
+            else:
+                print('Not modifying last corridor')
+
+    def change_room_heights(self):
+
+        for side, rooms_list in self.dict_rooms_per_side.items():
+            for i, room in enumerate(rooms_list):
+>>>>>>> master
                 # Cambio el ancho de la habitación de forma aleatoria (para no quedarme sin pasillo como maximo la muevo un tercio de este)
                 random_sign = [1, -1]
                 random_mov = list(np.arange(0, self.initial_corridor_height / 3, 0.05))
                 room.room_qrect.setTopLeft(QPointF(room.topLeft().x(),
                                                    room.topLeft().y() + random.choice(random_sign) * random.choice(
                                                        random_mov)))
+<<<<<<< HEAD
                 room.update_room_dimensions()
 
     def add_doors(self):
@@ -348,6 +465,17 @@ class Apartment:
         for current_side, rooms in self.dict_rooms_per_side.items():
 
             for i, room in enumerate(rooms):
+=======
+                room.update_room()
+
+    def add_doors(self):
+
+        self.union_polygon = QPolygonF()
+
+        for current_side, rooms_list in self.dict_rooms_per_side.items():
+
+            for i, room in enumerate(rooms_list):
+>>>>>>> master
 
                 possibles_door_locations = ['center']
                 if i in self.dict_corridors_per_side[current_side]:  # Pasillo a la izquierda
@@ -357,6 +485,7 @@ class Apartment:
                     possibles_door_locations.append('right')
 
                 door_location = random.choice(possibles_door_locations)
+<<<<<<< HEAD
                 room.add_door(door_location)
 
     def center_apartment(self):
@@ -395,12 +524,45 @@ class Apartment:
 
         for i, room in enumerate(self.rooms_list):
             polygon = room.room_qpolygon
+=======
+
+                room.get_room_polygon_with_door(door_location)
+
+                # --- Añadir habitaciones al pasillo ----
+                # self.result_polygon_rooms_list.append(room.room_qpolygon)
+                self.union_polygon = self.union_polygon.united(room.room_qpolygon)  # Para obtener el bounding box
+
+    def add_floor(self):
+
+        self.boundingRect = self.union_polygon.boundingRect()
+
+        fscale_x = self.boundingRect.width() / 5 + 0.5
+        fscale_y = self.boundingRect.height() / 5 + 0.5
+
+        # Create and scale a floor
+        r = coppelia.create_model('models/infrastructure/floors/5mX5m wooden floor.ttm', 0, 0, 0, 0)
+
+        coppelia.scale_object(r, fscale_x, fscale_y, 1)
+        for handle in coppelia.get_objects_children(r):
+            coppelia.scale_object(handle, fscale_x, fscale_y, 1)
+
+    def add_walls(self):
+
+        center = self.boundingRect.center()
+
+        for i,room in enumerate(self.rooms_list):
+            polygon = room.room_qpolygon
+            polygon.translate(-center)  # Desplazo los poligonos para que la habitación esté centrada
+
+            self.rooms_list[i] = polygon
+>>>>>>> master
 
             prev_point = polygon[0]
             for i, curr_point in enumerate(polygon):
                 if i == 0:
                     continue
 
+<<<<<<< HEAD
                 coppelia.create_wall([prev_point.x(), prev_point.y(), .4], [curr_point.x(), curr_point.y(), .4])
                 prev_point = curr_point
 
@@ -451,6 +613,22 @@ class Apartment:
             floor = coppelia.create_model('models/infrastructure/floors/5mX5m wooden floor.ttm', corridor_center.x(),
                                           corridor_center.y(), 0, 0)
             coppelia.scale_object(floor, fscale_x, fscale_y, 1)
+=======
+                coppelia.create_wall([prev_point.x(), prev_point.y(), 0], [curr_point.x(), curr_point.y(), 0])
+                prev_point = curr_point
+
+        if len(self.rooms_list) > 1:
+            polygon_br = QPolygonF(self.boundingRect, closed=True)
+            polygon_br.translate(-center)
+
+            prev_point_br = polygon_br[0]
+            for i, curr_point_br in enumerate(polygon_br):
+                if i == 0:
+                    continue
+
+                coppelia.create_wall([prev_point_br.x(), prev_point_br.y(), 0], [curr_point_br.x(), curr_point_br.y(), 0])
+                prev_point_br = curr_point_br
+>>>>>>> master
 
 
 if '__main__':
@@ -471,5 +649,9 @@ if '__main__':
     coppelia.set_object_position('DefaultCamera', 0, 0, 30.)
     coppelia.set_object_orientation('DefaultCamera', 3.14, 0, 3.14)
 
+<<<<<<< HEAD
     apartment = Apartment(n_rooms=random.randint(3, 5), asymmetric_rooms=False)
     # apartment = Apartment(n_rooms=2, asymmetric_rooms=False)
+=======
+    apartment = Apartment(n_rooms=random.randint(2,10), asymmetric_rooms=False)
+>>>>>>> master

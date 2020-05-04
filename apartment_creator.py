@@ -1,6 +1,5 @@
 import math
 import random
-
 import numpy as np
 import pygame
 import setproctitle
@@ -8,30 +7,30 @@ from PySide2.QtCore import QRectF, QPointF, QLineF
 from PySide2.QtGui import QPolygonF
 
 from coppeliasimapi import CoppeliaSimAPI
-import alphashape
 
 
 class Room:
 
     def __init__(self, type='genericRoom', p=QPointF(), w=-1, h=-1):
-        self.type = type  # En un futuro será corridor, bedroom, kitchen, bathroom, etc
+        self.type = type  # corridor, bedroom, kitchen, bathroom, etc
         self.width = w
         self.height = h
         self.initial_point = p
         self.room_qrect = QRectF()
         self.room_qpolygon = QPolygonF()
-
+        self.area = -1
         self.create_room()
 
     def create_room(self):
         print(f'Creating room of type {self.type} with width = {self.width} and height = {self.height}')
         self.room_qrect = QRectF(self.initial_point.x(), self.initial_point.y(), self.width, self.height)
         self.room_qpolygon = QPolygonF(self.room_qrect)
+        self.area = abs(self.width * self.height)
 
     def update_room_dimensions(self):
         self.width = self.room_qrect.width()
         self.height = self.room_qrect.height()
-
+        self.area = abs(self.width * self.height)
         self.room_qpolygon = QPolygonF(self.room_qrect)
 
     def add_door(self, door_location, room_side):
@@ -63,35 +62,41 @@ class Room:
         if door_location == 'center':
             self.room_qpolygon = QPolygonF(
                 [door_sides[door_location]['right_door'], self.room_qrect.topRight(), self.room_qrect.bottomRight(),
-                 self.room_qrect.bottomLeft(),self.room_qrect.topLeft(), door_sides[door_location]['left_door']])
+                 self.room_qrect.bottomLeft(), self.room_qrect.topLeft(), door_sides[door_location]['left_door']])
 
         elif door_location == 'left':
             if room_side == 'bottom':
                 self.room_qpolygon = QPolygonF(
                     [door_sides[door_location]['right_door'], self.room_qrect.topLeft(), self.room_qrect.topRight(),
-                     self.room_qrect.bottomRight(),self.room_qrect.bottomLeft(), door_sides[door_location]['left_door']])
+                     self.room_qrect.bottomRight(), self.room_qrect.bottomLeft(),
+                     door_sides[door_location]['left_door']])
 
             elif room_side == 'top':
                 self.room_qpolygon = QPolygonF(
-                    [door_sides[door_location]['right_door'], self.room_qrect.bottomLeft(), self.room_qrect.bottomRight(),
-                     self.room_qrect.topRight(), self.room_qrect.topLeft(),  door_sides[door_location]['left_door']])
+                    [door_sides[door_location]['right_door'], self.room_qrect.bottomLeft(),
+                     self.room_qrect.bottomRight(),
+                     self.room_qrect.topRight(), self.room_qrect.topLeft(), door_sides[door_location]['left_door']])
 
         elif door_location == 'right':
 
             if room_side == 'bottom':
                 self.room_qpolygon = QPolygonF(
                     [door_sides[door_location]['right_door'], self.room_qrect.topRight(), self.room_qrect.topLeft(),
-                     self.room_qrect.bottomLeft(),self.room_qrect.bottomRight(),  door_sides[door_location]['left_door']])
+                     self.room_qrect.bottomLeft(), self.room_qrect.bottomRight(),
+                     door_sides[door_location]['left_door']])
 
             elif room_side == 'top':
                 self.room_qpolygon = QPolygonF(
-                    [door_sides[door_location]['right_door'], self.room_qrect.bottomRight(), self.room_qrect.bottomLeft(),
-                     self.room_qrect.topLeft(), self.room_qrect.topRight(),  door_sides[door_location]['left_door']])
+                    [door_sides[door_location]['right_door'], self.room_qrect.bottomRight(),
+                     self.room_qrect.bottomLeft(),
+                     self.room_qrect.topLeft(), self.room_qrect.topRight(), door_sides[door_location]['left_door']])
 
 
 class Apartment:
 
-    def __init__(self, n_rooms):
+    def __init__(self, coppelia_, n_rooms):
+
+        self.coppelia = coppelia_
 
         self.num_rooms = n_rooms
         self.max_rooms_per_side = math.ceil(self.num_rooms / 2)
@@ -170,7 +175,8 @@ class Apartment:
             if len(self.dict_rooms_per_side[random_side]) >= self.max_rooms_per_side:
                 random_side = dict_opposite_side[random_side]
 
-            # El indice de mi habitacion está en la lista de pasillos por indice luego tengo que añadir un pasillo a su izquierda
+            # El indice de mi habitacion está en la lista de pasillos por indice luego tengo que añadir un pasillo a
+            # su izquierda
             if len(self.dict_rooms_per_side[random_side]) in self.dict_corridors_index_per_side[random_side]:
                 # self.add_corridor(random_side, random.uniform(1.5, 3), self.fixed_height)
                 self.add_corridor(random_side, self.initial_corridor_height, self.fixed_height)
@@ -188,7 +194,7 @@ class Apartment:
             # posibles signos del width, height en funcion del lado del pasillo en el que estén
             dict_side_sign = {'bottom': [1, -1], 'right': [1, 1], 'top': [1, 1], 'left': [-1, 1]}
 
-            width = dict_side_sign[random_side][0] * random.uniform(3, 6)
+            width = dict_side_sign[random_side][0] * random.uniform(3.5, 6)
             height = dict_side_sign[random_side][1] * self.fixed_height
 
             room = Room(type='genericRoom', p=initial_point, w=width, h=height)
@@ -341,7 +347,7 @@ class Apartment:
                 if i == 0:
                     continue
 
-                coppelia.create_wall([prev_point.x(), prev_point.y(), .4], [curr_point.x(), curr_point.y(), .4])
+                self.coppelia.create_wall([prev_point.x(), prev_point.y(), .4], [curr_point.x(), curr_point.y(), .4])
                 prev_point = curr_point
 
         polygon_br = QPolygonF(self.apartment_boundingRect, closed=True)
@@ -350,8 +356,8 @@ class Apartment:
             if i == 0:
                 continue
 
-            coppelia.create_wall([prev_point_br.x(), prev_point_br.y(), .4],
-                                 [curr_point_br.x(), curr_point_br.y(), .4])
+            self.coppelia.create_wall([prev_point_br.x(), prev_point_br.y(), .4],
+                                      [curr_point_br.x(), curr_point_br.y(), .4])
             prev_point_br = curr_point_br
 
     def add_floor(self):  # un suelo conjunto para el apartamento
@@ -360,11 +366,11 @@ class Apartment:
         fscale_y = self.apartment_boundingRect.height() / 5 + 0.5
 
         # Create and scale a floor
-        r = coppelia.create_model('models/infrastructure/floors/5mX5m wooden floor.ttm', 0, 0, 0, 0)
+        r = self.coppelia.create_model('models/infrastructure/floors/5mX5m wooden floor.ttm', 0, 0, 0, 0)
 
-        coppelia.scale_object(r, fscale_x, fscale_y, 1)
-        for handle in coppelia.get_objects_children(r):
-            coppelia.scale_object(handle, fscale_x, fscale_y, 1)
+        self.coppelia.scale_object(r, fscale_x, fscale_y, 1)
+        for handle in self.coppelia.get_objects_children(r):
+            self.coppelia.scale_object(handle, fscale_x, fscale_y, 1)
 
     def add_floor_per_room(self):
 
@@ -377,32 +383,12 @@ class Apartment:
             fscale_y = room_boundingRect.height() / 5
 
             if room.type == 'corridor':
-                floor = coppelia.create_model('models/infrastructure/floors/5mX5m wooden floor.ttm',
-                                              room_center.x(),
-                                              room_center.y(), -0.1, 0)
+                floor = self.coppelia.create_model('models/infrastructure/floors/5mX5m wooden floor.ttm',
+                                                   room_center.x(),
+                                                   room_center.y(), -0.1, 0)
             else:
-                floor = coppelia.create_model('models/infrastructure/floors/5mX5m concrete floor.ttm', room_center.x(),
-                                              room_center.y(), 0, 0)
+                floor = self.coppelia.create_model('models/infrastructure/floors/5mX5m concrete floor.ttm',
+                                                   room_center.x(),
+                                                   room_center.y(), 0, 0)
 
-            coppelia.scale_object(floor, fscale_x, fscale_y, 1)
-
-
-if '__main__':
-    setproctitle.setproctitle('Coppelia_random_appartment')
-    pygame.display.init()
-    coppelia = CoppeliaSimAPI(['./models/'])
-
-    # Stop the simulator and close the scene, just in case.
-    coppelia.stop()
-    coppelia.close()
-
-    # Move the floor downwards, as we want to use a prettier floor.
-    print('Getting floor name')
-    floor = coppelia.get_object_handle('ResizableFloor_5_25')
-    # print('ret:', floor)
-    coppelia.set_object_transform('ResizableFloor_5_25', 0.0, 0.0, -2.0, 0)
-    coppelia.scale_object('ResizableFloor_5_25', 0.1, 0.1, 0.1)
-    coppelia.set_object_position('DefaultCamera', 0, 0, 30.)
-    coppelia.set_object_orientation('DefaultCamera', 3.14, 0, 3.14)
-
-    apartment = Apartment(n_rooms=random.randint(3, 5))
+            self.coppelia.scale_object(floor, fscale_x, fscale_y, 1)

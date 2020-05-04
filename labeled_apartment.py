@@ -28,7 +28,7 @@ if '__main__':
     coppelia.set_object_position('DefaultCamera', 0, 0, 30.)
     coppelia.set_object_orientation('DefaultCamera', 3.14, 0, 3.14)
 
-    num_rooms = 2
+    num_rooms = 4
     apartment = Apartment(coppelia, n_rooms=num_rooms)
 
     print('\n ----------------------------------------------------------------------- ')
@@ -49,51 +49,64 @@ if '__main__':
 
     print(labels)
 
-    print(' ----------------------------------------------------------------------- ')
-
     areas = []
     for room in apartment.total_rooms_and_corridors:
         if room.type == 'corridor':
             continue
-
         areas.append(room.area)
 
     print(areas)
 
-    min_area = min(areas)
-    max_area = max(areas)
+    n_bathrooms = labels.count('bathroom')
+    n_livingrooms = labels.count('livingroom')
+    print(f' baños = {n_bathrooms}    salones = {n_livingrooms}')
 
-    equal_rooms = False
-    if min_area == max_area:
-        equal_rooms = True
+    areas_aux = areas
 
-    print(f' min_area {min_area} ')
-    print(f' max_area {max_area}')
+    min_areas = []
+    for n in range(n_bathrooms):
+        minimum = min(areas_aux)
 
-# #Primero asigno la habitación más grande y la más pequeña
-#     for room in apartment.total_rooms_and_corridors:
-#
-#         if room.type != 'genericRoom':
-#             continue
-#
-#         if not equal_rooms:
-#             n_bathrooms = labels.count('bathrooms')
-#
-#             for n in n_bathrooms:
-#
-#             if room.area == min_area and 'bathroom' in labels:
-#                 room.type = 'bathroom'
-#                 labels.remove('bathroom')
-#                 continue
-#
-#             if room.area == max_area and 'livingroom' in labels:
-#                 room.type = 'livingroom'
-#                 labels.remove('livingroom')
-#                 continue
-#
-#
-#     for room in apartment.total_rooms_and_corridors:
-#         if room.type == 'corridor':
-#             continue
-#
+        areas_aux.remove(minimum)
+        min_areas.append(minimum)
 
+    areas_aux = areas
+
+    max_areas = []
+    for n in range(n_livingrooms):
+        maximum = max(areas_aux)
+        areas_aux.remove(maximum)
+        max_areas.append(maximum)
+
+    print(f'min_areas ={min_areas}    max_areas = {max_areas}')
+    # Primero asigno la habitación más grande y la más pequeña
+    for room in apartment.total_rooms_and_corridors:
+        if room.type != 'genericRoom':
+            continue
+
+        if room.area in min_areas:
+            room.type = 'bathroom'
+            labels.remove('bathroom')
+            min_areas.remove(room.area)
+
+        elif room.area in max_areas:
+            room.type = 'livingroom'
+            labels.remove('livingroom')
+            max_areas.remove(room.area)
+
+    # Después se etiquetan el resto de las habitaciones
+    for room in apartment.total_rooms_and_corridors:
+
+        if room.type != 'genericRoom':
+            continue
+
+        choice = random.choice(labels)
+        room.type = choice
+        labels.remove(choice)
+
+    for i, room in enumerate(apartment.total_rooms_and_corridors):
+        if room.type == 'corridor':
+            continue
+        print(f'Room {i} with area of {room.area} is of type {room.type}')
+
+    print(' ----------------------------------------------------------------------- ')

@@ -10,6 +10,61 @@ from coppeliasimapi import CoppeliaSimAPI
 
 from apartment_creator import *
 
+
+def furnish_bathroom(room_rect):
+    print('___ furnish bathroom ___')
+    bathroom_models = {'toilet': './models/infrastructure/bathroom/toilet.ttm',
+                       'basin': './models/infrastructure/bathroom/hand basin.ttm'
+                       }
+
+    point = get_point_inside_room(room_rect)
+    coppelia.create_model(bathroom_models['toilet'], point.x(), point.y(), 0.425, random.choice([0, 1.57, -1.57, 3.14]) )
+    point = get_point_inside_room(room_rect)
+    coppelia.create_model(bathroom_models['basin'], point.x(), point.y(), 0.425, random.choice([0, 1.57, -1.57, 3.14]) )
+
+
+def furnish_livingroom(room_rect):
+    print('___ furnish livingroom ___')
+
+    living_models = {'sofa': './models/furniture/chairs/sofa.ttm',
+                     'chair': './models/furniture/chairs/dining chair.ttm',
+                     'plant': './models/furniture/plants/indoorPlant.ttm'
+                     }
+
+    n_sofas = random.randint(1, 3)
+    n_sofas =1
+    for n in range(n_sofas):
+        point = get_point_inside_room(room_rect)
+
+        sofa = coppelia.create_model(living_models['sofa'], point.x(), point.y(), 0.425, 0)
+        coppelia.set_object_orientation(sofa, 0, 0, 0, reference='sim.world')
+
+
+    point = get_point_inside_room(room_rect)
+    coppelia.create_model(living_models['chair'], point.x(), point.y(), 0.425, 0)
+
+    point = get_point_inside_room(room_rect)
+    coppelia.create_model(living_models['plant'], point.x(), point.y(), 0.425, 0)
+
+
+def furnish_kitchen(room_rect):
+    print('___ furnish livingroom ___')
+
+
+def furnish_bedroom(room_rect):
+    print('___ furnish livingroom ___')
+
+
+def get_point_inside_room(r):
+    return QPointF(random.uniform(r.left(), r.right()), random.uniform(r.bottom(), r.top()))
+
+
+furnish_room = {'bathroom': furnish_bathroom,
+                'livingroom': furnish_livingroom,
+                'kitchen': furnish_kitchen,
+                'bedroom': furnish_bedroom
+                }
+
 if '__main__':
     setproctitle.setproctitle('Coppelia_random_appartment')
     pygame.display.init()
@@ -43,9 +98,7 @@ if '__main__':
         labels.extend(random.choices(room_labels, weights, k=k_))
 
     else:
-        weights = [15, 15, 1, 10]
-        labels = random.choices(room_labels, weights, k=num_rooms)
-        # labels = random.sample(room_labels, k=num_rooms)
+        labels = random.sample(room_labels, k=num_rooms)
 
     print(labels)
 
@@ -108,5 +161,7 @@ if '__main__':
         if room.type == 'corridor':
             continue
         print(f'Room {i} with area of {room.area} is of type {room.type}')
+
+        furnish_room[room.type](room.room_qrect)
 
     print(' ----------------------------------------------------------------------- ')

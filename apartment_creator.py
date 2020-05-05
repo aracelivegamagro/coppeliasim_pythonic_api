@@ -9,7 +9,6 @@ from PySide2.QtCore import QRectF, QPointF, QLineF
 from PySide2.QtGui import QPolygonF
 
 data = {
-    # 'mutex': threading.Lock(),
     'walls': [],
     'walls_mutex': threading.Lock(),
 }
@@ -356,9 +355,8 @@ class Apartment:
 
         # Desplazo habitaciones y pasillos al centro
         for i, room in enumerate(self.total_rooms_and_corridors):
-            polygon = room.room_qpolygon
-            polygon.translate(-initial_center)  # Desplazo los poligonos para que la habitación esté centrada
-            self.total_rooms_and_corridors[i].room_qpolygon = polygon
+            room.room_qpolygon.translate(-initial_center)  # Desplazo los poligonos para que la habitación esté centrada
+            room.room_qrect.translate(-initial_center)
 
     def add_walls(self):
 

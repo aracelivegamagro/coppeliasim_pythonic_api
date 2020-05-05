@@ -1,16 +1,43 @@
 import math
 import random
+import threading
+
 import numpy as np
-import pygame
-import setproctitle
+from coppeliasimapi import CoppeliaSimAPI
+
 from PySide2.QtCore import QRectF, QPointF, QLineF
 from PySide2.QtGui import QPolygonF
 
-from coppeliasimapi import CoppeliaSimAPI
+data = {
+    # 'mutex': threading.Lock(),
+    'walls': [],
+    'walls_mutex': threading.Lock(),
+}
+
+
+class WallCreator(threading.Thread):
+    def __init__(self, data, wall_data):
+        super(WallCreator, self).__init__()
+        self.coppelia = CoppeliaSimAPI(['./scenes/'])
+        self.data = data
+        self.wall_data = wall_data
+
+    def run(self):
+        if len(self.wall_data) > 2:
+            for wall in self.wall_data:
+                wall_object = self.coppelia.create_wall(wall[0], wall[1])
+                self.data['walls_mutex'].acquire()
+                self.data['walls'].append(wall_object)
+                self.data['walls_mutex'].release()
+
+        else:
+            wall_object = self.coppelia.create_wall(self.wall_data[0], self.wall_data[1])
+            self.data['walls_mutex'].acquire()
+            self.data['walls'].append(wall_object)
+            self.data['walls_mutex'].release()
 
 
 class Room:
-
     def __init__(self, type='genericRoom', p=QPointF(), w=-1, h=-1):
         self.type = type  # corridor, bedroom, kitchen, bathroom, etc
         self.width = w
@@ -336,7 +363,7 @@ class Apartment:
     def add_walls(self):
 
         for i, room in enumerate(self.total_rooms_and_corridors):
-
+            walls = []
             if room.type == 'corridor':
                 continue
 
@@ -346,9 +373,13 @@ class Apartment:
             for i, curr_point in enumerate(polygon):
                 if i == 0:
                     continue
-
-                self.coppelia.create_wall([prev_point.x(), prev_point.y(), .4], [curr_point.x(), curr_point.y(), .4])
+                walls.append(([prev_point.x(), prev_point.y(), .4], [curr_point.x(), curr_point.y(), .4]))
                 prev_point = curr_point
+
+            wall_thread = WallCreator(data, walls)
+            wall_thread.start()
+
+        walls = []
 
         polygon_br = QPolygonF(self.apartment_boundingRect, closed=True)
         prev_point_br = polygon_br[0]
@@ -356,9 +387,11 @@ class Apartment:
             if i == 0:
                 continue
 
-            self.coppelia.create_wall([prev_point_br.x(), prev_point_br.y(), .4],
-                                      [curr_point_br.x(), curr_point_br.y(), .4])
+            walls.append(([prev_point_br.x(), prev_point_br.y(), .4], [curr_point_br.x(), curr_point_br.y(), .4]))
             prev_point_br = curr_point_br
+
+        wall_thread = WallCreator(data, walls)
+        wall_thread.start()
 
     def add_floor(self):  # un suelo conjunto para el apartamento
 

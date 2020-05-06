@@ -18,9 +18,9 @@ def furnish_bathroom(room_rect):
                        }
 
     point = get_point_inside_room(room_rect)
-    coppelia.create_model(bathroom_models['toilet'], point.x(), point.y(), 0.425, random.choice([0, 1.57, -1.57, 3.14]) )
+    coppelia.create_model(bathroom_models['toilet'], point.x(), point.y(), 0.425, random.choice([0, 1.57, -1.57, 3.14]))
     point = get_point_inside_room(room_rect)
-    coppelia.create_model(bathroom_models['basin'], point.x(), point.y(), 0.425, random.choice([0, 1.57, -1.57, 3.14]) )
+    coppelia.create_model(bathroom_models['basin'], point.x(), point.y(), 0.425, random.choice([0, 1.57, -1.57, 3.14]))
 
 
 def furnish_livingroom(room_rect):
@@ -31,14 +31,39 @@ def furnish_livingroom(room_rect):
                      'plant': './models/furniture/plants/indoorPlant.ttm'
                      }
 
-    n_sofas = random.randint(1, 3)
-    
-    for n in range(n_sofas):
-        point = get_point_inside_room(room_rect)
-        angle = random.uniform(-0, 3.14*2)
-        sofa = coppelia.create_model(living_models['sofa'], point.x(), point.y(), 0.425, 0)
-        coppelia.set_object_orientation(sofa, -1.57, -1.57 + angle, -1.57)
+    objects_in_room = []
 
+    n_sofas = random.randint(1, 3)
+    n_sofas = 2
+
+    for i in range(n_sofas):
+
+        count = 0
+        collision = True
+
+        while collision is True and count <= 50:
+
+            point = get_point_inside_room(room_rect)
+            angle = random.uniform(-0, 3.14 * 2)
+            sofa = coppelia.create_model(living_models['sofa'], point.x(), point.y(), 0.425, 0)
+            coppelia.set_object_orientation(sofa, -1.57, -1.57 + angle, -1.57)
+
+            if len(objects_in_room) == 0:
+                collision = False
+
+            for obj in objects_in_room:
+                if coppelia.check_collision(sofa, obj):
+                    print('Hay colisión')
+                    coppelia.remove_object(sofa)
+                else:
+                    collision = False
+
+            count += 1
+
+        if count > 100:
+            print('cant locate furniture')
+        else:
+            objects_in_room.append(sofa)
 
     point = get_point_inside_room(room_rect)
     coppelia.create_model(living_models['chair'], point.x(), point.y(), 0.425, 0)
@@ -55,16 +80,31 @@ def furnish_bedroom(room_rect):
     print('___ furnish livingroom ___')
 
 
+def get_point_along_walls(r):
+    walls = {'top': QLineF(r.topLeft(), r.topRight()),
+             'right': QLineF(r.topRight(), r.bottomRight()),
+             'bottom': QLineF(r.bottomLeft(), r.bottomRight()),
+             'left': QLineF(r.topLeft(), r.bottomLeft()),
+             }
+
+    line = dict_location_line[door_location]
+    line_lenght = int(line.length())
+    step = line_lenght / 100.
+
+    line_points = []
+    for t in np.arange(0.25, 0.75, step):
+        line_point = line.pointAt(t)
+        line_points.append(QPointF(line_point.x(), line_point.y()))
+
+
 def get_point_inside_room(r):
+    bottom = r.bottom()
+    top = r.top()
 
-    #Dependiendo de si la habitacion esta arriba o abajo el bottom y el top cambiaç
-
+    # Dependiendo de si la habitacion esta arriba o abajo el bottom y el top cambiaç
     if r.bottom() > r.top():
         bottom = r.top()
         top = r.bottom()
-    else:
-        bottom = r.bottom()
-        top = r.top()
 
     margin = 0.5
     left_m = r.left() + margin
@@ -72,7 +112,7 @@ def get_point_inside_room(r):
     bottom_m = bottom + margin
     top_m = top - margin
 
-    return QPointF(random.uniform(left_m,right_m), random.uniform(bottom_m, top_m))
+    return QPointF(random.uniform(left_m, right_m), random.uniform(bottom_m, top_m))
 
 
 furnish_room = {'bathroom': furnish_bathroom,

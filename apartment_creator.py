@@ -45,6 +45,8 @@ class Room:
         self.room_qrect = QRectF()
         self.room_qpolygon = QPolygonF()
         self.area = -1
+        self.door_loc = -1  # 0 entre topL y topR, 1 entre topR y bottomR, 2 entre bottomR y bottomL y 3 entr bL y tL
+
         self.create_room()
 
     def create_room(self):
@@ -90,18 +92,7 @@ class Room:
                 [door_sides[door_location]['right_door'], self.room_qrect.topRight(), self.room_qrect.bottomRight(),
                  self.room_qrect.bottomLeft(), self.room_qrect.topLeft(), door_sides[door_location]['left_door']])
 
-        elif door_location == 'left':
-            if room_side == 'bottom':
-                self.room_qpolygon = QPolygonF(
-                    [door_sides[door_location]['right_door'], self.room_qrect.topLeft(), self.room_qrect.topRight(),
-                     self.room_qrect.bottomRight(), self.room_qrect.bottomLeft(),
-                     door_sides[door_location]['left_door']])
-
-            elif room_side == 'top':
-                self.room_qpolygon = QPolygonF(
-                    [door_sides[door_location]['right_door'], self.room_qrect.bottomLeft(),
-                     self.room_qrect.bottomRight(),
-                     self.room_qrect.topRight(), self.room_qrect.topLeft(), door_sides[door_location]['left_door']])
+            self.door_loc = 0
 
         elif door_location == 'right':
 
@@ -116,6 +107,24 @@ class Room:
                     [door_sides[door_location]['right_door'], self.room_qrect.bottomRight(),
                      self.room_qrect.bottomLeft(),
                      self.room_qrect.topLeft(), self.room_qrect.topRight(), door_sides[door_location]['left_door']])
+
+            self.door_loc = 1
+
+        elif door_location == 'left':
+            if room_side == 'bottom':
+                self.room_qpolygon = QPolygonF(
+                    [door_sides[door_location]['right_door'], self.room_qrect.topLeft(), self.room_qrect.topRight(),
+                     self.room_qrect.bottomRight(), self.room_qrect.bottomLeft(),
+                     door_sides[door_location]['left_door']])
+
+
+            elif room_side == 'top':
+                self.room_qpolygon = QPolygonF(
+                    [door_sides[door_location]['right_door'], self.room_qrect.bottomLeft(),
+                     self.room_qrect.bottomRight(),
+                     self.room_qrect.topRight(), self.room_qrect.topLeft(), door_sides[door_location]['left_door']])
+
+            self.door_loc = 3
 
 
 class Apartment:

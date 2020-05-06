@@ -45,6 +45,7 @@ class Room:
         self.room_qrect = QRectF()
         self.room_qpolygon = QPolygonF()
         self.area = -1
+        self.side = None
         self.door_loc = -1  # 0 entre topL y topR, 1 entre topR y bottomR, 2 entre bottomR y bottomL y 3 entr bL y tL
 
         self.create_room()
@@ -62,6 +63,8 @@ class Room:
         self.room_qpolygon = QPolygonF(self.room_qrect)
 
     def add_door(self, door_location, room_side):
+
+        self.side = room_side
 
         dict_location_line = {'center': QLineF(self.room_qrect.topLeft(), self.room_qrect.topRight()),
                               'left': QLineF(self.room_qrect.topLeft(), self.room_qrect.bottomLeft()),

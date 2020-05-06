@@ -1,3 +1,4 @@
+import copy
 import math
 import random
 import numpy as np
@@ -11,20 +12,31 @@ from coppeliasimapi import CoppeliaSimAPI
 from apartment_creator import *
 
 
-def furnish_bathroom(room_rect):
+def furnish_bathroom(room):
     print('___ furnish bathroom ___')
+
     bathroom_models = {'toilet': './models/infrastructure/bathroom/toilet.ttm',
                        'basin': './models/infrastructure/bathroom/hand basin.ttm'
                        }
 
-    point = get_point_inside_room(room_rect)
-    coppelia.create_model(bathroom_models['toilet'], point.x(), point.y(), 0.425, random.choice([0, 1.57, -1.57, 3.14]))
-    point = get_point_inside_room(room_rect)
-    coppelia.create_model(bathroom_models['basin'], point.x(), point.y(), 0.425, random.choice([0, 1.57, -1.57, 3.14]))
+    dict_angles_sides = {
+        'top': 0,
+        'right': -1.57,
+        'bottom': 3.14,
+        'left': 1.57
+    }
+
+    for f in bathroom_models.keys():
+        point, f_loc = get_point_along_walls(room, f)
+        print(f'room side {room.side}')
+        print(f'furniture loc {f_loc}')
+        coppelia.create_model(bathroom_models[f], point.x(), point.y(), 0.425, dict_angles_sides[f_loc])
 
 
-def furnish_livingroom(room_rect):
+def furnish_livingroom(room):
     print('___ furnish livingroom ___')
+
+    room_rect = room.room_qrect
 
     living_models = {'sofa': './models/furniture/chairs/sofa.ttm',
                      'chair': './models/furniture/chairs/dining chair.ttm',
@@ -34,19 +46,20 @@ def furnish_livingroom(room_rect):
     objects_in_room = []
 
     n_sofas = random.randint(1, 3)
-    n_sofas = 2
+    n_sofas = 1
 
     for i in range(n_sofas):
 
         count = 0
         collision = True
 
-        while collision is True and count <= 50:
+        while collision is True and count <= 10:
 
             point = get_point_inside_room(room_rect)
             angle = random.uniform(-0, 3.14 * 2)
             sofa = coppelia.create_model(living_models['sofa'], point.x(), point.y(), 0.425, 0)
             coppelia.set_object_orientation(sofa, -1.57, -1.57 + angle, -1.57)
+            coppelia.set_collidable(sofa)
 
             if len(objects_in_room) == 0:
                 collision = False
@@ -57,10 +70,11 @@ def furnish_livingroom(room_rect):
                     coppelia.remove_object(sofa)
                 else:
                     collision = False
+                    break
 
             count += 1
 
-        if count > 100:
+        if count > 10:
             print('cant locate furniture')
         else:
             objects_in_room.append(sofa)
@@ -72,29 +86,39 @@ def furnish_livingroom(room_rect):
     coppelia.create_model(living_models['plant'], point.x(), point.y(), 0.425, 0)
 
 
-def furnish_kitchen(room_rect):
+def furnish_kitchen(room):
     print('___ furnish livingroom ___')
 
 
-def furnish_bedroom(room_rect):
+def furnish_bedroom(room):
     print('___ furnish livingroom ___')
 
 
-def get_point_along_walls(r):
-    walls = {'top': QLineF(r.topLeft(), r.topRight()),
-             'right': QLineF(r.topRight(), r.bottomRight()),
-             'bottom': QLineF(r.bottomLeft(), r.bottomRight()),
-             'left': QLineF(r.topLeft(), r.bottomLeft()),
-             }
+def get_point_along_walls(room, furniture):
+    dict_furniture_margins = {'basin': 0.2,
+                              'toilet': 0.3}
 
-    line = dict_location_line[door_location]
-    line_lenght = int(line.length())
-    step = line_lenght / 100.
+    r_aux = copy.deepcopy(room.room_qrect)
 
-    line_points = []
-    for t in np.arange(0.25, 0.75, step):
-        line_point = line.pointAt(t)
-        line_points.append(QPointF(line_point.x(), line_point.y()))
+    margin = dict_furniture_margins[furniture]
+
+    #              left     top     right   bottom
+    r_aux = r_aux.adjusted(+margin, -margin, -margin, +margin)
+
+    lines = {'top': QLineF(r_aux.topLeft(), r_aux.topRight()),
+             'right': QLineF(r_aux.topRight(), r_aux.bottomRight()),
+             'bottom': QLineF(r_aux.bottomLeft(), r_aux.bottomRight()),
+             'left': QLineF(r_aux.topLeft(), r_aux.bottomLeft())}
+
+    walls = ['top', 'right', 'bottom', 'left']
+
+    door_loc = room.door_loc
+    walls.pop(door_loc)
+
+    side = random.choice(walls)
+    p = random.uniform(0.25, 0.75)
+
+    return QPointF(lines[side].pointAt(p).x(), lines[side].pointAt(p).y()), side
 
 
 def get_point_inside_room(r):
@@ -218,6 +242,6 @@ if '__main__':
             continue
         print(f'Room {i} with area of {room.area} is of type {room.type}')
 
-        furnish_room[room.type](room.room_qrect)
+        furnish_room[room.type](room)
 
     print(' ----------------------------------------------------------------------- ')

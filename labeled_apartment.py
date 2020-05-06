@@ -32,12 +32,12 @@ def furnish_livingroom(room_rect):
                      }
 
     n_sofas = random.randint(1, 3)
-    n_sofas =1
+    
     for n in range(n_sofas):
         point = get_point_inside_room(room_rect)
-
+        angle = random.uniform(-0, 3.14*2)
         sofa = coppelia.create_model(living_models['sofa'], point.x(), point.y(), 0.425, 0)
-        coppelia.set_object_orientation(sofa, 0, 0, 0, reference='sim.world')
+        coppelia.set_object_orientation(sofa, -1.57, -1.57 + angle, -1.57)
 
 
     point = get_point_inside_room(room_rect)
@@ -56,7 +56,23 @@ def furnish_bedroom(room_rect):
 
 
 def get_point_inside_room(r):
-    return QPointF(random.uniform(r.left(), r.right()), random.uniform(r.bottom(), r.top()))
+
+    #Dependiendo de si la habitacion esta arriba o abajo el bottom y el top cambiaç
+
+    if r.bottom() > r.top():
+        bottom = r.top()
+        top = r.bottom()
+    else:
+        bottom = r.bottom()
+        top = r.top()
+
+    margin = 0.5
+    left_m = r.left() + margin
+    right_m = r.right() - margin
+    bottom_m = bottom + margin
+    top_m = top - margin
+
+    return QPointF(random.uniform(left_m,right_m), random.uniform(bottom_m, top_m))
 
 
 furnish_room = {'bathroom': furnish_bathroom,

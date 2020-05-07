@@ -19,17 +19,19 @@ def furnish_bathroom(room):
                        'basin': './models/infrastructure/bathroom/hand basin.ttm'
                        }
 
+    dict_furniture_margins = {'basin': 0.2,
+                              'toilet': 0.3}
+
     dict_angles_sides = {
         'top': 0,
         'right': -1.57,
         'bottom': 3.14,
         'left': 1.57
+
     }
 
     for f in bathroom_models.keys():
-        point, f_loc = get_point_along_walls(room, f)
-        print(f'room side {room.side}')
-        print(f'furniture loc {f_loc}')
+        point, f_loc = get_point_along_walls(room, dict_furniture_margins[f])
         coppelia.create_model(bathroom_models[f], point.x(), point.y(), 0.425, dict_angles_sides[f_loc])
 
 
@@ -40,50 +42,55 @@ def furnish_livingroom(room):
 
     living_models = {'sofa': './models/furniture/chairs/sofa.ttm',
                      'chair': './models/furniture/chairs/dining chair.ttm',
-                     'plant': './models/furniture/plants/indoorPlant.ttm'
+                     'plant': './models/furniture/plants/indoorPlant.ttm',
+                     'coffe_table': './models/mymodels/coffe_table.ttm'
                      }
 
-    objects_in_room = []
-
-    n_sofas = random.randint(1, 3)
-    n_sofas = 1
-
-    for i in range(n_sofas):
-
-        count = 0
-        collision = True
-
-        while collision is True and count <= 10:
-
-            point = get_point_inside_room(room_rect)
-            angle = random.uniform(-0, 3.14 * 2)
-            sofa = coppelia.create_model(living_models['sofa'], point.x(), point.y(), 0.425, 0)
-            coppelia.set_object_orientation(sofa, -1.57, -1.57 + angle, -1.57)
-            coppelia.set_collidable(sofa)
-
-            if len(objects_in_room) == 0:
-                collision = False
-
-            for obj in objects_in_room:
-                if coppelia.check_collision(sofa, obj):
-                    print('Hay colisión')
-                    coppelia.remove_object(sofa)
-                else:
-                    collision = False
-                    break
-
-            count += 1
-
-        if count > 10:
-            print('cant locate furniture')
-        else:
-            objects_in_room.append(sofa)
-
     point = get_point_inside_room(room_rect)
-    coppelia.create_model(living_models['chair'], point.x(), point.y(), 0.425, 0)
+    angle = random.uniform(-0, 3.14 * 2)
+    coffe_table = coppelia.create_model(living_models['coffe_table'], point.x(), point.y(), 0, 0)
 
-    point = get_point_inside_room(room_rect)
-    coppelia.create_model(living_models['plant'], point.x(), point.y(), 0.425, 0)
+    # objects_in_room = []
+    #
+    # n_sofas = random.randint(1, 3)
+    # n_sofas = 1
+    #
+    # for i in range(n_sofas):
+    #
+    #     count = 0
+    #     collision = True
+    #
+    #     while collision is True and count <= 10:
+    #
+    #         point = get_point_inside_room(room_rect)
+    #         angle = random.uniform(-0, 3.14 * 2)
+    #         sofa = coppelia.create_model(living_models['sofa'], point.x(), point.y(), 0.425, 0)
+    #         coppelia.set_object_orientation(sofa, -1.57, -1.57 + angle, -1.57)
+    #         coppelia.set_collidable(sofa)
+    #
+    #         if len(objects_in_room) == 0:
+    #             collision = False
+    #
+    #         for obj in objects_in_room:
+    #             if coppelia.check_collision(sofa, obj):
+    #                 print('Hay colisión')
+    #                 coppelia.remove_object(sofa)
+    #             else:
+    #                 collision = False
+    #                 break
+    #
+    #         count += 1
+    #
+    #     if count > 10:
+    #         print('cant locate furniture')
+    #     else:
+    #         objects_in_room.append(sofa)
+
+    # point = get_point_inside_room(room_rect)
+    # coppelia.create_model(living_models['chair'], point.x(), point.y(), 0.425, 0)
+    #
+    # point = get_point_inside_room(room_rect)
+    # coppelia.create_model(living_models['plant'], point.x(), point.y(), 0.425, 0)
 
 
 def furnish_kitchen(room):
@@ -94,47 +101,30 @@ def furnish_bedroom(room):
     print('___ furnish livingroom ___')
 
 
-def get_point_along_walls(room, furniture):
-    dict_furniture_margins = {'basin': 0.2,
-                              'toilet': 0.3}
-
+def get_point_along_walls(room, margin):
     r_aux = copy.deepcopy(room.room_qrect)
 
-    margin = dict_furniture_margins[furniture]
-
-    #              left     top     right   bottom
-    r_aux = r_aux.adjusted(+margin, -margin, -margin, +margin)
+    r_aux = r_aux.adjusted(+margin, -margin, -margin, +margin)  # left,top,right,bottom
 
     lines = {'top': QLineF(r_aux.topLeft(), r_aux.topRight()),
              'right': QLineF(r_aux.topRight(), r_aux.bottomRight()),
              'bottom': QLineF(r_aux.bottomLeft(), r_aux.bottomRight()),
              'left': QLineF(r_aux.topLeft(), r_aux.bottomLeft())}
 
-    walls = ['top', 'right', 'bottom', 'left']
+    del lines[room.door_position]
 
-    door_loc = room.door_loc
-    walls.pop(door_loc)
-
-    side = random.choice(walls)
+    side = random.choice(list(lines.keys()))
     p = random.uniform(0.25, 0.75)
 
     return QPointF(lines[side].pointAt(p).x(), lines[side].pointAt(p).y()), side
 
 
 def get_point_inside_room(r):
-    bottom = r.bottom()
-    top = r.top()
-
-    # Dependiendo de si la habitacion esta arriba o abajo el bottom y el top cambiaç
-    if r.bottom() > r.top():
-        bottom = r.top()
-        top = r.bottom()
-
     margin = 0.5
     left_m = r.left() + margin
     right_m = r.right() - margin
-    bottom_m = bottom + margin
-    top_m = top - margin
+    bottom_m = r.bottom() + margin
+    top_m = r.top() - margin
 
     return QPointF(random.uniform(left_m, right_m), random.uniform(bottom_m, top_m))
 
@@ -142,8 +132,7 @@ def get_point_inside_room(r):
 furnish_room = {'bathroom': furnish_bathroom,
                 'livingroom': furnish_livingroom,
                 'kitchen': furnish_kitchen,
-                'bedroom': furnish_bedroom
-                }
+                'bedroom': furnish_bedroom  }
 
 if '__main__':
     setproctitle.setproctitle('Coppelia_random_appartment')

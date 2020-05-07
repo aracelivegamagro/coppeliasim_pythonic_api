@@ -398,21 +398,3 @@ class Apartment:
             self.coppelia.scale_object(floor, fscale_x, fscale_y, 1)
 
 
-if '__main__':
-    coppelia = CoppeliaSimAPI(['./models/'])
-
-    # Stop the simulator and close the scene, just in case.
-    coppelia.stop()
-    coppelia.close()
-
-    # Move the floor downwards, as we want to use a prettier floor.
-    print('Getting floor name')
-    floor = coppelia.get_object_handle('ResizableFloor_5_25')
-    # print('ret:', floor)
-    coppelia.set_object_transform('ResizableFloor_5_25', 0.0, 0.0, -2.0, 0)
-    coppelia.scale_object('ResizableFloor_5_25', 0.1, 0.1, 0.1)
-    coppelia.set_object_position('DefaultCamera', 0, 0, 30.)
-    coppelia.set_object_orientation('DefaultCamera', 3.14, 0, 3.14)
-
-    num_rooms = 4
-    apartment = Apartment(coppelia, n_rooms=num_rooms)

@@ -388,6 +388,12 @@ class CoppeliaSimAPI(object):
 
         return self.client.simxCheckCollision(obj1, obj2, call.get())
 
+    def set_collidable(self, obj, asynch=False):
+        handle = self.convert_to_valid_handle(obj)
+        return self.run_script(f'sim.setObjectSpecialProperty({handle},sim.objectspecialproperty_collidable+'
+                               f'sim.objectspecialproperty_measurable+sim.objectspecialproperty_detectable_all'
+                               f'+sim.objectspecialproperty_renderable)', asynch)
+
     @staticmethod
     def get_transform_matrix(x, y, z, angle):
         rotate_matrix = np.matrix([[cos(angle), -sin(angle), 0., 0.],

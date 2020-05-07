@@ -324,12 +324,6 @@ class CoppeliaSimAPI(object):
     def scale_object(self, handle, sx, sy, sz, asynch=False):
         return self.run_script(f'sim.scaleObject({handle},{sx},{sy},{sz},0)', asynch)
 
-    def set_collidable(self, obj, asynch=False):
-        handle = self.convert_to_valid_handle(obj)
-        return self.run_script(f'sim.setObjectSpecialProperty({handle},sim.objectspecialproperty_collidable+'
-                               f'sim.objectspecialproperty_measurable+sim.objectspecialproperty_detectable_all'
-                               f'+sim.objectspecialproperty_renderable)', asynch)
-
     def close(self, asynch=False):
         call = self.get_call_object(asynch)
         return self.client.simxCloseScene(call.get())

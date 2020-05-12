@@ -30,9 +30,34 @@ def furnish_bathroom(room):
 
     }
 
+    objects_in_room = []
+
     for f in bathroom_models.keys():
-        point, f_loc = get_point_along_walls(room, dict_furniture_margins[f])
-        coppelia.create_model(bathroom_models[f], point.x(), point.y(), 0.425, dict_angles_sides[f_loc])
+        count = 0
+        valid_object = False
+
+        while not valid_object and count < 50:
+            point, f_loc = get_point_along_walls(room, dict_furniture_margins[f])
+            obj = coppelia.create_model(bathroom_models[f], point.x(), point.y(), 0.425, dict_angles_sides[f_loc])
+            coppelia.set_collidable(obj)
+
+            if len(objects_in_room) == 0:
+                valid_object = True
+                break
+            else:
+                valid_object = check_object_collision(obj, objects_in_room)
+                if not valid_object:
+                    print('Hay colisión - se elimina el objeto')
+                    coppelia.remove_object(obj)
+                    print('objeto eliminado')
+
+            count += 1
+
+        if count >= 50:
+            print('cant locate furniture')
+
+        if valid_object:
+            objects_in_room.append(obj)
 
 
 def furnish_livingroom(room):
@@ -43,54 +68,47 @@ def furnish_livingroom(room):
     living_models = {'sofa': './models/furniture/chairs/sofa.ttm',
                      'chair': './models/furniture/chairs/dining chair.ttm',
                      'plant': './models/furniture/plants/indoorPlant.ttm',
-                     'coffe_table': './models/mymodels/coffe_table.ttm'
+                     # 'coffe_table': './models/mymodels/coffe_table.ttm'
                      }
 
-    point = get_point_inside_room(room_rect)
-    angle = random.uniform(-0, 3.14 * 2)
-    coffe_table = coppelia.create_model(living_models['coffe_table'], point.x(), point.y(), 0, 0)
+    objects_in_room = []
 
-    # objects_in_room = []
-    #
-    # n_sofas = random.randint(1, 3)
-    # n_sofas = 1
-    #
-    # for i in range(n_sofas):
-    #
-    #     count = 0
-    #     collision = True
-    #
-    #     while collision is True and count <= 10:
-    #
-    #         point = get_point_inside_room(room_rect)
-    #         angle = random.uniform(-0, 3.14 * 2)
-    #         sofa = coppelia.create_model(living_models['sofa'], point.x(), point.y(), 0.425, 0)
-    #         coppelia.set_object_orientation(sofa, -1.57, -1.57 + angle, -1.57)
-    #         coppelia.set_collidable(sofa)
-    #
-    #         if len(objects_in_room) == 0:
-    #             collision = False
-    #
-    #         for obj in objects_in_room:
-    #             if coppelia.check_collision(sofa, obj):
-    #                 print('Hay colisión')
-    #                 coppelia.remove_object(sofa)
-    #             else:
-    #                 collision = False
-    #                 break
-    #
-    #         count += 1
-    #
-    #     if count > 10:
-    #         print('cant locate furniture')
-    #     else:
-    #         objects_in_room.append(sofa)
+    n_furniture = random.randint(5, 10)
 
-    # point = get_point_inside_room(room_rect)
-    # coppelia.create_model(living_models['chair'], point.x(), point.y(), 0.425, 0)
-    #
-    # point = get_point_inside_room(room_rect)
-    # coppelia.create_model(living_models['plant'], point.x(), point.y(), 0.425, 0)
+    for f in range(n_furniture):
+
+        count = 0
+        valid_object = False
+        to_insert = random.choice(list(living_models.keys()))
+        print(f' trying to insert {to_insert}')
+
+        while not valid_object and count < 50:
+
+            point = get_point_inside_room(room_rect)
+            angle = random.uniform(-0, 3.14 * 2)
+            obj = coppelia.create_model(living_models[to_insert], point.x(), point.y(), 0.425, angle)
+            if to_insert == 'sofa':
+                coppelia.set_object_orientation(obj, -1.57, -1.57 + angle, -1.57)
+            coppelia.set_collidable(obj)
+
+            if len(objects_in_room) == 0:
+                valid_object = True
+                break
+            else:
+                valid_object = check_object_collision(obj, objects_in_room)
+                if not valid_object:
+                    print('Hay colisión - se elimina el objeto')
+                    coppelia.remove_object(obj)
+                    print('objeto eliminado')
+
+            count += 1
+
+        if count >= 50:
+            print('cant locate furniture')
+
+        if valid_object:
+            print(f'adding {to_insert} ')
+            objects_in_room.append(obj)
 
 
 def furnish_kitchen(room):
@@ -99,6 +117,18 @@ def furnish_kitchen(room):
 
 def furnish_bedroom(room):
     print('___ furnish livingroom ___')
+
+
+def check_object_collision(obj, object_list):
+    valid_object = True
+
+    for o in object_list:
+
+        if coppelia.check_collision(obj, o):
+            valid_object = False
+            break
+
+    return valid_object
 
 
 def get_point_along_walls(room, margin):
@@ -121,22 +151,16 @@ def get_point_along_walls(room, margin):
 
 def get_point_inside_room(r):
     margin = 0.5
-    left_m = r.left() + margin
-    right_m = r.right() - margin
-    bottom_m = r.bottom() + margin
-    top_m = r.top() - margin
-
-    return QPointF(random.uniform(left_m, right_m), random.uniform(bottom_m, top_m))
+    return QPointF(random.uniform(r.left() + margin, r.right() - margin),
+                   random.uniform(r.bottom() + margin, r.top() - margin))
 
 
 furnish_room = {'bathroom': furnish_bathroom,
                 'livingroom': furnish_livingroom,
                 'kitchen': furnish_kitchen,
-                'bedroom': furnish_bedroom  }
+                'bedroom': furnish_bedroom}
 
 if '__main__':
-    setproctitle.setproctitle('Coppelia_random_appartment')
-    pygame.display.init()
     coppelia = CoppeliaSimAPI(['./models/'])
 
     # Stop the simulator and close the scene, just in case.
